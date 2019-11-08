@@ -5,19 +5,22 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define DEBUG_TEST_CASE 2	// 2: 2000명 랜덤입력으로 테스트	1: 직접 테스트케이스 입력
+#define DEBUG_TEST_CASE 1	// 2: 2000명 랜덤입력으로 테스트	1: 직접 테스트케이스 입력
 
 
 void printAll();
 bool check();
 
+int total = 0;
+
 bool DPsolution(int n, int t, int w[]) {
 	// n/2 명의 W로 t를 만들 수 있나?
-	t = t + 1;
+	///t = t + 1;
 
-	int** table = (int**)malloc(sizeof(int*) * n);	// n 행
+
+	int** table = (int**)malloc(sizeof(int*) * n);	// 0 ~ n-1 행
 	for (int i = 0; i < n; i++) {
-		table[i] = (int*)malloc(sizeof(int) * t);	// t 열
+		table[i] = (int*)malloc(sizeof(int) * t);	// 0 ~ t-1 열
 	}
 
 	// basecase
@@ -72,10 +75,85 @@ bool DPsolution(int n, int t, int w[]) {
 	}
 
 	int start = t - 1;
+	total = 0;
 
+	// DP 추적 시작.
+	// n/2 개로 targetNumber를 만들 수 있는지 확인.
+	printf("\n%d을 %d개로 만들 수 있는지 확인합니다.\n", t, n/2);
+	for (int i = n - 1; i > 0; i--) {
+		/*
+		if (count == n/2) {
+			printf("solset is : ");
+			for (int i = 0; i < count; i++) {
+				printf("%d, ", B[i]);
+				total += B[i];
+			}
+			return true;
+		}
+		*/
+		
+		
+
+		for (int j = start; j >= 0; j--) {
+			if (table[i][j] == true) {
+				if (table[i - 1][j] == false) {
+					// 이 경우 t는  i에서 온것.
+					B[count] = w[i]; // i
+					count++;
+					start = start - w[i]; // i
+					// i의 요소를 해집합에 추가하고, 한줄 위 & w[i] 만큼 왼쪽으로 진행.
+					break;
+				} else {
+					// 이 경우 t는 일단 위쪽 어디선가 온 것.
+					// 한줄 위로 간다.
+					break;
+				}
+			} else {	// table[i][j] == false인 경우는 볼게 없음.
+
+			}
+
+		}
+
+	}
+
+
+	printf("count is %d\n", count);
+	if (count == n / 2) {
+		printf("solset is : ");
+		for (int i = 0; i < count; i++) {
+			printf("%d, ", B[i]);
+			total += B[i];
+		}
+
+		for (int i = 0; i < n; i++) {
+			free(table[i]);
+		}
+		free(table);
+
+		return true;
+	}
+	else {
+		for (int i = 0; i < n; i++) {
+			free(table[i]);
+		}
+		free(table);
+		return false;
+	}
+
+	printf("\n\nNONONONNO");
+	return -1;
+
+
+
+
+
+
+
+
+	///////
 	if (table[n - 1][t - 1] == true) {
 		// 추적시작
-		printf("\nTracing Start...\n");
+		printf("\n%d에서 Tracing Start...\n", t);
 		for (int i = n - 1; i >= 0; i--) {
 			// count 체크 :: count가 N/2 내지는 N/2+1 을 만족하는 경우 true를 반환하고 함수를 종료한다.
 			//				  :: 위 경우를 만족하지 못 하면 false를 반환한다.
@@ -88,11 +166,20 @@ bool DPsolution(int n, int t, int w[]) {
 			for (int j = start; j > 0; j--) {	// for j=t-1 to j>0 j--;
 				// start 에서 시작하도록								
 				//printf("(%d, %d) ", i,j);
+				
 				 if (i == 0 && table[i][w[i]] == true) { //
 					 B[count] = w[i]; //
 					 count++; //
 					break;
 				}
+				
+
+				// i == 0 인 경우.
+				///if (i == 0) {
+				///	B[count] = 0;
+				///	count++;
+				///	break;
+				///}
 
 				if (table[i][j] == true && table[i - 1][j] == false) {
 					//printf("i = %d j = %d ", i,j);
@@ -100,13 +187,14 @@ bool DPsolution(int n, int t, int w[]) {
 					count++;
 					//printf("c= %d\n", count);
 					//printf("\nB[%d] = %d in ", count - 1, w[i]);
-					start = start - w[i];
+					start = start - w[i]; // +1?
 					//printf(" %d열 ", start);
 					break;
 				}
 				else if(table[i][j] == false) {
-					
+					//start--;
 				} else if(table[i][j] == true && table[i-1][j] == true){
+					
 					break;
 				}
 			}
@@ -123,12 +211,18 @@ bool DPsolution(int n, int t, int w[]) {
 
 		return false;
 	}
+	//////
 
+
+
+	
 	return false;
+
+
 
 }
 
-int total = 0;
+
 // true 조건 체크 함수
 bool check(int n, int count, int B[]) {
 	total = 0;
@@ -178,7 +272,7 @@ int compare(const void *a, const void *b){
 	int num1 = *(int *)a;    
 	int num2 = *(int *)b;   
 	if (num1 < num2) return -1;
-	if (num1 > num2) return 1;      
+	if (num1 > num2) return 1; 
 	return 0;
 }
 
