@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define DEBUG_TEST_CASE 1	// 2: 2000명 랜덤입력으로 테스트	1: 직접 테스트케이스 입력
+#define DEBUG_TEST_CASE 2	// 2: 2000명 랜덤입력으로 테스트	1: 직접 테스트케이스 입력
 
 
 void printAll();
@@ -13,7 +13,6 @@ bool check();
 
 bool DPsolution(int n, int t, int w[]) {
 	// n/2 명의 W로 t를 만들 수 있나?
-	// w[]
 	t = t + 1;
 
 	int** table = (int**)malloc(sizeof(int*) * n);	// n 행
@@ -32,8 +31,11 @@ bool DPsolution(int n, int t, int w[]) {
 		else {
 			table[0][j] = false;
 		}
+		
+		//table[0][j] = false;
 	}
 	table[0][0] = true;
+
 
 	// DP 테이블 생성
 	for (int i = 1; i < n; i++) {
@@ -55,20 +57,25 @@ bool DPsolution(int n, int t, int w[]) {
 		}
 	}
 
+
 	// 확인용 출력
 	//printAll(table, n, t);
 
+
 	// 추적해서 N/2명인지 ? T : F
 	int count = 0;
-	int B[500];
+	int B[2000];
 
 
 	if (table[n-1][t-1] == false) {
 		return false;		// targetNumber를 못 만드므로 Fail
 	}
 
+	int start = t - 1;
+
 	if (table[n - 1][t - 1] == true) {
 		// 추적시작
+		printf("\nTracing Start...\n");
 		for (int i = n - 1; i >= 0; i--) {
 			// count 체크 :: count가 N/2 내지는 N/2+1 을 만족하는 경우 true를 반환하고 함수를 종료한다.
 			//				  :: 위 경우를 만족하지 못 하면 false를 반환한다.
@@ -77,12 +84,13 @@ bool DPsolution(int n, int t, int w[]) {
 				return true;
 			}
 
-			for (int j = t - 1; j > 0; j--) {
+			/// 숫자가 중복되면 버그가 발생하는듯? ----> 추적 부분 다시 확인..
+			for (int j = start; j > 0; j--) {	// for j=t-1 to j>0 j--;
+				// start 에서 시작하도록								
 				//printf("(%d, %d) ", i,j);
 				 if (i == 0 && table[i][w[i]] == true) { //
 					 B[count] = w[i]; //
 					 count++; //
-					 //printf("count is %d\n", count);
 					break;
 				}
 
@@ -92,18 +100,24 @@ bool DPsolution(int n, int t, int w[]) {
 					count++;
 					//printf("c= %d\n", count);
 					//printf("\nB[%d] = %d in ", count - 1, w[i]);
+					start = start - w[i];
+					//printf(" %d열 ", start);
 					break;
 				}
 				else if(table[i][j] == false) {
 					
-				} else {
-					 break;
+				} else if(table[i][j] == true && table[i-1][j] == true){
+					break;
 				}
 			}
 		}
 
+
 		if (check(n, count, B)) {
 			return true;
+		}
+		else {
+			return false;
 		}
 
 
@@ -117,7 +131,7 @@ bool DPsolution(int n, int t, int w[]) {
 int total = 0;
 // true 조건 체크 함수
 bool check(int n, int count, int B[]) {
-	//int total = 0;
+	total = 0;
 	if (n % 2 == 0 && count == n / 2) { // n/2
 		printf("\nsol is : ");
 		for (int i = 0; i < count; i++) {
@@ -125,7 +139,7 @@ bool check(int n, int count, int B[]) {
 			total += B[i];
 		}
 		printf("\n");
-		printf("Sum is %d\n", total);
+		printf("Sum is %d, Count is %d\n", total, count);
 		return true;
 	}
 	else if (n % 2 != 0 && count == n / 2 + 1) {
@@ -135,7 +149,7 @@ bool check(int n, int count, int B[]) {
 			total += B[i];
 		}
 		printf("\n");
-		printf("Sum is %d\n", total);
+		printf("Sum is %d, Count is %d\n", total, count);
 		return true;
 	}
 	total = 0;
@@ -207,9 +221,10 @@ int main() {
 #if DEBUG_TEST_CASE >= 2
 	srand(time(NULL));
 
-	numberOfMens = 1000;	// 2000명 오류남
+	numberOfMens = 2000;	// 2000명 오류남
 	int* W = (int*)malloc(sizeof(int) * numberOfMens);
 
+	printf("Ping");
 	int buf = 0;
 	for (int i = 0; i < numberOfMens; i++) {
 		//scanf_s("%d", &buf);
@@ -217,6 +232,7 @@ int main() {
 		W[i] = buf;
 		totalSum += buf;
 	}
+	printf(" Pong ");
 #endif
 
 
@@ -255,6 +271,7 @@ int main() {
 
 	// DP를 이용한 Solution 구하기
 	for (int i = 0; targetNumber != 0; i++) {
+		printf(" %d \n", i);
 		if (DPsolution(numberOfMens, targetNumber, W) == true) {	// 찾음!
 			printf("\nSTOP\n");
 			//printf("Leftside : %d,  Rightside : %d", targetNumber, totalSum - targetNumber);
